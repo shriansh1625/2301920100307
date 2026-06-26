@@ -1,3 +1,4 @@
+import "./loadEnv.js";
 import { Log } from "./log.js";
 
 async function runTest() {

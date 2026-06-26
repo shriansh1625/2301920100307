@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   Badge,
@@ -10,29 +10,53 @@ import {
   Typography,
 } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
+import { Log } from "logging-middleware";
 
-import { NotificationCard } from "../components/NotificationCard";
-import { NotificationFilter } from "../components/NotificationFilter";
-import { useNotifications } from "../hooks/useNotifications";
+import { NotificationCard } from "../components/NotificationCard.jsx";
+import { NotificationFilter } from "../components/NotificationFilter.jsx";
+import { useNotifications } from "../hooks/useNotifications.js";
+import {
+  getUnreadCount,
+  getViewedNotificationIds,
+} from "../utils/viewedNotifications.js";
 
 export function NotificationsPage() {
-  const [filter, setFilter] = useState();
-  const [page, setPage] = useState("1");
+  const [filter, setFilter] = useState("All");
+  const [page, setPage] = useState(1);
+  const [viewedIds, setViewedIds] = useState(() => getViewedNotificationIds());
 
-  const { notifications, totalPages, loading, error } = useNotifications();
+  const { notifications, totalPages, loading, error } = useNotifications({
+    page,
+    limit: 10,
+    notificationType: filter,
+  });
 
-  const unreadCount = 2;
+  const unreadCount = useMemo(
+    () => getUnreadCount(notifications, viewedIds),
+    [notifications, viewedIds]
+  );
 
-  const handleFilterChange = (newFilter) => {
+  async function handleFilterChange(newFilter) {
+    setFilter(newFilter);
+    setPage(1);
+    await Log("frontend", "debug", "page", "notifications filter updated");
+  }
 
-  };
+  async function handlePageChange(_, newPage) {
+    setPage(newPage);
+    await Log("frontend", "debug", "page", "notifications page changed");
+  }
 
-  const handlePageChange = (_, newPage) => {
-
-  };
+  function handleViewed(notificationId) {
+    setViewedIds((current) => {
+      const updated = new Set(current);
+      updated.add(notificationId);
+      return updated;
+    });
+  }
 
   return (
-    <Box sx={{ maxWidth: 720, mx: "auto", px: 2, py: 4 }}>
+    <Box>
       <Stack direction="row" alignItems="center" spacing={1.5} mb={3}>
         <Badge badgeContent={unreadCount} color="primary" max={99}>
           <NotificationsIcon sx={{ fontSize: 28 }} />
@@ -44,33 +68,38 @@ export function NotificationsPage() {
 
       <Divider sx={{ mb: 3 }} />
 
-      <Box sx={{ marginBottom: 3 }}>
+      <Box sx={{ mb: 3 }}>
         <NotificationFilter value={filter} onChange={handleFilterChange} />
       </Box>
 
-      {true && (
+      {loading ? (
         <Box display="flex" justifyContent="center" py={6}>
           <CircularProgress />
         </Box>
-      )}
+      ) : null}
 
-      {!loading && error && (
+      {!loading && error ? (
         <Alert severity="error">Failed to load notifications: {error}</Alert>
-      )}
+      ) : null}
 
-      {loading && !error && notifications.length == "0" && (
-        <Alert severity="info">Something message</Alert>
-      )}
+      {!loading && !error && notifications.length === 0 ? (
+        <Alert severity="info">No notifications found for this filter.</Alert>
+      ) : null}
 
-      {loading && !error && notifications.length > 0 && (
+      {!loading && !error && notifications.length > 0 ? (
         <Stack spacing={1.5}>
-          {notifications.map((n) => (
-            <></>
+          {notifications.map((notification) => (
+            <NotificationCard
+              key={notification.ID}
+              notification={notification}
+              viewedIds={viewedIds}
+              onViewed={handleViewed}
+            />
           ))}
         </Stack>
-      )}
+      ) : null}
 
-      {!loading && (
+      {!loading && !error && totalPages > 1 ? (
         <Box display="flex" justifyContent="center" mt={4}>
           <Pagination
             count={totalPages}
@@ -80,7 +109,7 @@ export function NotificationsPage() {
             shape="rounded"
           />
         </Box>
-      )}
+      ) : null}
     </Box>
   );
 }

@@ -1,30 +1,37 @@
-import { config } from "dotenv";
-import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
 import type { AuthResponse } from "./types.js";
 
-const moduleDir = dirname(fileURLToPath(import.meta.url));
-
-config({ path: resolve(process.cwd(), ".env") });
-config({ path: resolve(process.cwd(), "../.env") });
-config({ path: resolve(moduleDir, "../../.env") });
-
+let manualConfig: Record<string, string> | null = null;
 let cachedToken: string | null = null;
 let tokenExpiresAt = 0;
 
+export function configure(env: Record<string, string>): void {
+  manualConfig = env;
+  cachedToken = null;
+  tokenExpiresAt = 0;
+}
+
+function readEnv(name: string): string | undefined {
+  if (manualConfig?.[name]) {
+    return manualConfig[name].trim();
+  }
+
+  if (typeof process !== "undefined" && process.env?.[name]) {
+    return process.env[name]?.trim();
+  }
+
+  return undefined;
+}
+
 function getRequiredEnv(name: string): string {
-  const value = process.env[name]?.trim();
+  const value = readEnv(name);
   if (!value) {
     throw new Error(`Missing required environment variable: ${name}`);
   }
   return value;
 }
 
-function getBaseUrl(): string {
-  return (
-    process.env.EVAL_BASE_URL?.trim() ||
-    "http://4.224.186.213/evaluation-service"
-  );
+export function getEvalBaseUrl(): string {
+  return readEnv("EVAL_BASE_URL") || "http://4.224.186.213/evaluation-service";
 }
 
 function isTokenValid(): boolean {
@@ -38,7 +45,7 @@ export async function getAccessToken(): Promise<string> {
     return cachedToken;
   }
 
-  const authUrl = `${getBaseUrl()}/auth`;
+  const authUrl = `${getEvalBaseUrl()}/auth`;
 
   const body = {
     email: getRequiredEnv("EVAL_EMAIL"),

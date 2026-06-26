@@ -3,3 +3,7 @@ node_modules/
 dist/
 logging-middleware/node_modules/
 logging-middleware/dist/
+priority-inbox/node_modules/
+priority-inbox/dist/
+notification-app-fe/node_modules/
+notification-app-fe/dist/

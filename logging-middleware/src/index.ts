@@ -1,5 +1,5 @@
 export { Log } from "./log.js";
-export { getAccessToken } from "./auth.js";
+export { getAccessToken, configure, getEvalBaseUrl } from "./auth.js";
 export type {
   Stack,
   Level,

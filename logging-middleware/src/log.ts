@@ -1,4 +1,4 @@
-import { getAccessToken } from "./auth.js";
+import { getAccessToken, getEvalBaseUrl } from "./auth.js";
 import type { Level, LogPayload, LogResponse, Package, Stack } from "./types.js";
 
 const BACKEND_PACKAGES = new Set([
@@ -77,13 +77,6 @@ function validateInput(
   };
 }
 
-function getBaseUrl(): string {
-  return (
-    process.env.EVAL_BASE_URL?.trim() ||
-    "http://4.224.186.213/evaluation-service"
-  );
-}
-
 export async function Log(
   stack: string,
   level: string,
@@ -93,7 +86,7 @@ export async function Log(
   const payload = validateInput(stack, level, pkg, message);
   const token = await getAccessToken();
 
-  const response = await fetch(`${getBaseUrl()}/logs`, {
+  const response = await fetch(`${getEvalBaseUrl()}/logs`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
