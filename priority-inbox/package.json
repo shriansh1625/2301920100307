@@ -1,0 +1,17 @@
+{
+  "name": "priority-inbox",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node dist/index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "logging-middleware": "file:../logging-middleware"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "typescript": "^5.7.3"
+  }
+}
