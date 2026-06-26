@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Log } from "logging-middleware";
+import { appLog } from "../utils/appLog.js";
 import { fetchNotifications } from "../api/notifications.js";
 
 export function useNotifications({ page = 1, limit = 10, notificationType } = {}) {
@@ -13,7 +13,7 @@ export function useNotifications({ page = 1, limit = 10, notificationType } = {}
     setError(null);
 
     try {
-      await Log("frontend", "debug", "hook", "loading notifications");
+      appLog("frontend", "debug", "hook", "loading notifications");
       const data = await fetchNotifications({ page, limit, notificationType });
       setNotifications(data.notifications ?? []);
       setTotalPages(data.totalPages ?? data.pagination?.totalPages ?? 1);
@@ -21,7 +21,7 @@ export function useNotifications({ page = 1, limit = 10, notificationType } = {}
       const message =
         loadError instanceof Error ? loadError.message : "Unable to load notifications";
       setError(message);
-      await Log("frontend", "error", "hook", "notifications hook failed");
+      appLog("frontend", "error", "hook", "notifications hook failed");
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,4 @@
-import { Log } from "logging-middleware";
+import { appLog } from "../utils/appLog.js";
 import { getAuthToken, getApiBaseUrl } from "./auth.js";
 
 const MAX_PAGE_LIMIT = 10;
@@ -23,7 +23,7 @@ function parseTotalPages(data) {
 }
 
 export async function fetchNotifications({ page = 1, limit = 10, notificationType } = {}) {
-  await Log("frontend", "debug", "api", "fetch notifications request started");
+  appLog("frontend", "debug", "api", "fetching notifications");
 
   try {
     const token = await getAuthToken();
@@ -49,19 +49,19 @@ export async function fetchNotifications({ page = 1, limit = 10, notificationTyp
 
     if (!response.ok) {
       const errorText = await response.text();
-      await Log("frontend", "error", "api", "notifications fetch failed");
+      appLog("frontend", "error", "api", "notifications fetch failed");
       throw new Error(errorText || `Request failed with status ${response.status}`);
     }
 
     const data = await response.json();
-    await Log("frontend", "info", "api", "notifications fetched successfully");
+    appLog("frontend", "info", "api", "notifications fetched successfully");
 
     return {
       ...data,
       totalPages: parseTotalPages(data),
     };
   } catch (error) {
-    await Log("frontend", "error", "api", "notifications request error");
+    appLog("frontend", "error", "api", "notifications request error");
     throw error;
   }
 }

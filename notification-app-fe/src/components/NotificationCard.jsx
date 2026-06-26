@@ -1,6 +1,6 @@
 import { Box, Card, CardActionArea, CardContent, Chip, Stack, Typography } from "@mui/material";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
-import { Log } from "logging-middleware";
+import { appLog } from "../utils/appLog.js";
 import {
   isNotificationViewed,
   markNotificationViewed,
@@ -57,7 +57,7 @@ export function NotificationCard({ notification, viewedIds, onViewed }) {
     if (!isNew) return;
     markNotificationViewed(notification.ID);
     onViewed(notification.ID);
-    await Log("frontend", "info", "component", "notification marked viewed");
+    appLog("frontend", "info", "component", "notification marked viewed");
   }
 
   return (

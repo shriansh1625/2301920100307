@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { CssBaseline, ThemeProvider, createTheme } from "@mui/material";
-import { Log } from "logging-middleware";
+import { appLog } from "./utils/appLog.js";
 
 import { AppLayout } from "./components/AppLayout.jsx";
 import { NotificationsPage } from "./pages/NotificationsPage.jsx";
@@ -157,7 +157,7 @@ const theme = createTheme({
 
 export default function App() {
   useEffect(() => {
-    Log("frontend", "info", "page", "notification app mounted").catch(() => {});
+    appLog("frontend", "info", "page", "notification app mounted");
   }, []);
 
   return (

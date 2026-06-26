@@ -3,11 +3,13 @@ import type { AuthResponse } from "./types.js";
 let manualConfig: Record<string, string> | null = null;
 let cachedToken: string | null = null;
 let tokenExpiresAt = 0;
+let pendingAuth: Promise<string> | null = null;
 
 export function configure(env: Record<string, string>): void {
   manualConfig = env;
   cachedToken = null;
   tokenExpiresAt = 0;
+  pendingAuth = null;
 }
 
 function readEnv(name: string): string | undefined {
@@ -40,11 +42,7 @@ function isTokenValid(): boolean {
   return nowInSeconds < tokenExpiresAt - 30;
 }
 
-export async function getAccessToken(): Promise<string> {
-  if (isTokenValid() && cachedToken) {
-    return cachedToken;
-  }
-
+async function requestAuthToken(): Promise<string> {
   const authUrl = `${getEvalBaseUrl()}/auth`;
 
   const body = {
@@ -73,4 +71,22 @@ export async function getAccessToken(): Promise<string> {
   tokenExpiresAt = data.expires_in;
 
   return cachedToken;
+}
+
+export async function getAccessToken(): Promise<string> {
+  if (isTokenValid() && cachedToken) {
+    return cachedToken;
+  }
+
+  if (pendingAuth) {
+    return pendingAuth;
+  }
+
+  pendingAuth = requestAuthToken();
+
+  try {
+    return await pendingAuth;
+  } finally {
+    pendingAuth = null;
+  }
 }

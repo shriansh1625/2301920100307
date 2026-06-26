@@ -17,6 +17,16 @@ export default defineConfig(({ mode }) => {
           target: "http://4.224.186.213",
           changeOrigin: true,
           secure: false,
+          timeout: 60000,
+          proxyTimeout: 60000,
+          configure: (proxy) => {
+            proxy.on("error", (_err, _req, res) => {
+              if (res && !res.headersSent) {
+                res.writeHead(502, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ error: "evaluation service unavailable" }));
+              }
+            });
+          },
         },
       },
     },

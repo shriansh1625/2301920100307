@@ -1,5 +1,5 @@
 import { ToggleButton, ToggleButtonGroup } from "@mui/material";
-import { Log } from "logging-middleware";
+import { appLog } from "../utils/appLog.js";
 
 const FILTERS = [
   { label: "All", value: "All" },
@@ -12,7 +12,7 @@ export function NotificationFilter({ value = "All", onChange }) {
   async function handleChange(_, newFilter) {
     if (!newFilter) return;
     onChange(newFilter);
-    await Log("frontend", "debug", "component", "notification filter changed");
+    appLog("frontend", "debug", "component", "notification filter changed");
   }
 
   return (

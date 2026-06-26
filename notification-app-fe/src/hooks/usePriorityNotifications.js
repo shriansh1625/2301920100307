@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Log } from "logging-middleware";
+import { appLog } from "../utils/appLog.js";
 import { fetchAllNotifications } from "../api/notifications.js";
 import { getTopPriorityNotifications } from "../utils/priority.js";
 
@@ -16,7 +16,7 @@ export function usePriorityNotifications(limit = 10) {
       setError(null);
 
       try {
-        await Log("frontend", "debug", "hook", "loading priority inbox");
+        appLog("frontend", "debug", "hook", "loading priority inbox");
         const allNotifications = await fetchAllNotifications();
         const ranked = getTopPriorityNotifications(allNotifications, limit);
 
@@ -24,7 +24,7 @@ export function usePriorityNotifications(limit = 10) {
           setNotifications(ranked);
         }
 
-        await Log("frontend", "info", "hook", "priority inbox loaded");
+        appLog("frontend", "info", "hook", "priority inbox loaded");
       } catch (loadError) {
         const message =
           loadError instanceof Error ? loadError.message : "Unable to load priority inbox";
@@ -33,7 +33,7 @@ export function usePriorityNotifications(limit = 10) {
           setError(message);
         }
 
-        await Log("frontend", "error", "hook", "priority hook failed");
+        appLog("frontend", "error", "hook", "priority hook failed");
       } finally {
         if (isMounted) {
           setLoading(false);

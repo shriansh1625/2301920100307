@@ -32,6 +32,8 @@ const FRONTEND_PACKAGES = new Set([
   "utils",
 ]);
 
+let logChain: Promise<void> = Promise.resolve();
+
 function validateInput(
   stack: string,
   level: string,
@@ -77,6 +79,35 @@ function validateInput(
   };
 }
 
+async function postLog(payload: LogPayload, attempt = 1): Promise<LogResponse> {
+  const token = await getAccessToken();
+
+  try {
+    const response = await fetch(`${getEvalBaseUrl()}/logs`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Log API failed (${response.status}): ${errorText}`);
+    }
+
+    return (await response.json()) as LogResponse;
+  } catch (error) {
+    if (attempt < 2) {
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      return postLog(payload, attempt + 1);
+    }
+
+    throw error instanceof Error ? error : new Error("Unknown logging error");
+  }
+}
+
 export async function Log(
   stack: string,
   level: string,
@@ -84,21 +115,13 @@ export async function Log(
   message: string
 ): Promise<LogResponse> {
   const payload = validateInput(stack, level, pkg, message);
-  const token = await getAccessToken();
 
-  const response = await fetch(`${getEvalBaseUrl()}/logs`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(payload),
-  });
+  const run = () => postLog(payload);
+  const resultPromise = logChain.then(run, run);
+  logChain = resultPromise.then(
+    () => undefined,
+    () => undefined
+  );
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Log API failed (${response.status}): ${errorText}`);
-  }
-
-  return (await response.json()) as LogResponse;
+  return resultPromise;
 }

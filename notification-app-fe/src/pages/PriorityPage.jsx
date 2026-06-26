@@ -13,7 +13,7 @@ import {
   Typography,
 } from "@mui/material";
 import EmojiEventsOutlinedIcon from "@mui/icons-material/EmojiEventsOutlined";
-import { Log } from "logging-middleware";
+import { appLog } from "../utils/appLog.js";
 
 import { NotificationCard } from "../components/NotificationCard.jsx";
 import { usePriorityNotifications } from "../hooks/usePriorityNotifications.js";
@@ -55,7 +55,7 @@ export function PriorityPage() {
 
   async function handleLimitChange(event) {
     setLimit(Number(event.target.value));
-    await Log("frontend", "debug", "page", "priority limit updated");
+    appLog("frontend", "debug", "page", "priority limit updated");
   }
 
   function handleViewed(notificationId) {

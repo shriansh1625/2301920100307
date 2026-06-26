@@ -10,7 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
-import { Log } from "logging-middleware";
+import { appLog } from "../utils/appLog.js";
 
 import { NotificationCard } from "../components/NotificationCard.jsx";
 import { NotificationFilter } from "../components/NotificationFilter.jsx";
@@ -64,12 +64,12 @@ export function NotificationsPage() {
   async function handleFilterChange(newFilter) {
     setFilter(newFilter);
     setPage(1);
-    await Log("frontend", "debug", "page", "notifications filter updated");
+    appLog("frontend", "debug", "page", "notifications filter updated");
   }
 
   async function handlePageChange(_, newPage) {
     setPage(newPage);
-    await Log("frontend", "debug", "page", "notifications page changed");
+    appLog("frontend", "debug", "page", "notifications page changed");
   }
 
   function handleViewed(notificationId) {
