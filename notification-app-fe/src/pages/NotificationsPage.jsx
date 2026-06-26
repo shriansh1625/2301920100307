@@ -1,15 +1,15 @@
 import { useMemo, useState } from "react";
 import {
   Alert,
-  Badge,
   Box,
   CircularProgress,
   Divider,
   Pagination,
+  Skeleton,
   Stack,
   Typography,
 } from "@mui/material";
-import NotificationsIcon from "@mui/icons-material/Notifications";
+import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import { Log } from "logging-middleware";
 
 import { NotificationCard } from "../components/NotificationCard.jsx";
@@ -19,6 +19,31 @@ import {
   getUnreadCount,
   getViewedNotificationIds,
 } from "../utils/viewedNotifications.js";
+
+function NotificationSkeleton() {
+  return (
+    <Box
+      sx={{
+        border: "1px solid #E2E8F0",
+        borderRadius: "10px",
+        p: 2,
+        bgcolor: "background.paper",
+      }}
+    >
+      <Stack direction="row" spacing={1.5} alignItems="flex-start">
+        <Skeleton variant="circular" width={8} height={8} sx={{ mt: "5px", flexShrink: 0 }} />
+        <Box sx={{ flex: 1 }}>
+          <Stack direction="row" justifyContent="space-between" mb={1}>
+            <Skeleton variant="rounded" width={72} height={22} />
+            <Skeleton variant="rounded" width={36} height={16} />
+          </Stack>
+          <Skeleton variant="text" width="55%" height={20} />
+          <Skeleton variant="text" width="32%" height={16} sx={{ mt: 0.5 }} />
+        </Box>
+      </Stack>
+    </Box>
+  );
+}
 
 export function NotificationsPage() {
   const [filter, setFilter] = useState("All");
@@ -57,13 +82,18 @@ export function NotificationsPage() {
 
   return (
     <Box>
-      <Stack direction="row" alignItems="center" spacing={1.5} mb={3}>
-        <Badge badgeContent={unreadCount} color="primary" max={99}>
-          <NotificationsIcon sx={{ fontSize: 28 }} />
-        </Badge>
-        <Typography variant="h5" fontWeight={700}>
-          Notifications
-        </Typography>
+      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={3}>
+        <Box>
+          <Stack direction="row" alignItems="center" spacing={1.5}>
+            <NotificationsNoneIcon sx={{ fontSize: 26, color: "primary.main" }} />
+            <Typography variant="h5">Notifications</Typography>
+          </Stack>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, ml: "calc(26px + 12px)" }}>
+            {unreadCount > 0
+              ? `${unreadCount} unread notification${unreadCount > 1 ? "s" : ""}`
+              : "All caught up"}
+          </Typography>
+        </Box>
       </Stack>
 
       <Divider sx={{ mb: 3 }} />
@@ -73,17 +103,32 @@ export function NotificationsPage() {
       </Box>
 
       {loading ? (
-        <Box display="flex" justifyContent="center" py={6}>
-          <CircularProgress />
-        </Box>
+        <Stack spacing={1.5}>
+          {[...Array(5)].map((_, i) => (
+            <NotificationSkeleton key={i} />
+          ))}
+        </Stack>
       ) : null}
 
       {!loading && error ? (
-        <Alert severity="error">Failed to load notifications: {error}</Alert>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          Could not load notifications. Please try again.
+        </Alert>
       ) : null}
 
       {!loading && !error && notifications.length === 0 ? (
-        <Alert severity="info">No notifications found for this filter.</Alert>
+        <Box
+          sx={{
+            textAlign: "center",
+            py: 8,
+            color: "text.secondary",
+          }}
+        >
+          <NotificationsNoneIcon sx={{ fontSize: 48, color: "#CBD5E1", mb: 1.5 }} />
+          <Typography variant="body1" color="text.secondary">
+            No notifications for this filter
+          </Typography>
+        </Box>
       ) : null}
 
       {!loading && !error && notifications.length > 0 ? (
@@ -107,6 +152,7 @@ export function NotificationsPage() {
             onChange={handlePageChange}
             color="primary"
             shape="rounded"
+            size="medium"
           />
         </Box>
       ) : null}
